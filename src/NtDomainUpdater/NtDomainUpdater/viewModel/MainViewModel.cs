@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Security;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using ININ.IceLib.Configuration;
 using ININ.IceLib.Connection;
 using NtDomainUpdater.model;
 using WpfConfiguratorLib;
@@ -19,6 +24,15 @@ namespace NtDomainUpdater.viewModel
         private readonly Session _session = new Session();
         private bool _isConnected;
         private bool _isConnecting;
+        private UserConfigurationList _userConfigurationList;
+        private readonly BackgroundWorker _dataFetcher = new BackgroundWorker();
+        private readonly BackgroundWorker _processor = new BackgroundWorker();
+        private ObservableCollection<UserViewModel> _users = new ObservableCollection<UserViewModel>();
+        private int _totalUsers;
+        private int _matchingUsers;
+        private int _fetchProgress = -1;
+        private int _processProgress = -1;
+        private string _statusText= "";
 
         #endregion
 
@@ -56,6 +70,70 @@ namespace NtDomainUpdater.viewModel
             }
         }
 
+        public ObservableCollection<UserViewModel> Users
+        {
+            get { return _users; }
+            set
+            {
+                _users = value; 
+                OnPropertyChanged();
+            }
+        }
+
+        public int TotalUsers
+        {
+            get { return _totalUsers; }
+            set
+            {
+                _totalUsers = value; 
+                OnPropertyChanged();
+            }
+        }
+
+        public int MatchingUsers
+        {
+            get { return _matchingUsers; }
+            set
+            {
+                _matchingUsers = value; 
+                OnPropertyChanged();
+            }
+        }
+
+        public int FetchProgress
+        {
+            get { return _fetchProgress; }
+            set
+            {
+                _fetchProgress = value;
+                OnPropertyChanged();
+                OnPropertyChanged("IsNotBusy");
+            }
+        }
+
+        public int ProcessProgress
+        {
+            get { return _processProgress; }
+            set
+            {
+                _processProgress = value;
+                OnPropertyChanged();
+                OnPropertyChanged("IsNotBusy");
+            }
+        }
+
+        public bool IsNotBusy { get { return FetchProgress == -1 && ProcessProgress == -1; } }
+
+        public string StatusText
+        {
+            get { return _statusText; }
+            set
+            {
+                _statusText = value; 
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
 
 
@@ -63,8 +141,28 @@ namespace NtDomainUpdater.viewModel
         public MainViewModel()
         {
             _session.ConnectionStateChanged += SessionOnConnectionStateChanged;
+
             ConfigData = ConfigManager.Load<ConfigData>(ConfigData.DisplayName) ?? ConfigData;
+
+            _dataFetcher.DoWork += DataFetcherOnDoWork;
+            _dataFetcher.RunWorkerCompleted += DataFetcherOnRunWorkerCompleted;
+
+            _processor.DoWork += ProcessorOnDoWork;
+            _processor.RunWorkerCompleted += ProcessorOnRunWorkerCompleted;
+
+            try
+            {
+                var name = Environment.UserName;
+                name = name.Replace('.', ' ');
+                StatusText = "Welcome, " + CultureInfo.CurrentCulture.TextInfo.ToTitleCase(name);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
+
+
 
         #region Private Methods
 
@@ -72,11 +170,180 @@ namespace NtDomainUpdater.viewModel
         {
             try
             {
+                // Initialize things on UP
                 if (_session.ConnectionState == ConnectionState.Up)
-                    Context.Send(s => ConfigManager.Save(ConfigData), null);
+                {
+                    Context.Send(s =>
+                    {
+                        ConfigManager.Save(ConfigData);
+                        StatusText = "Connected to " + _session.ICServer;
+                    }, null);
+                    _userConfigurationList = new UserConfigurationList(ConfigurationManager.GetInstance(_session));
+                }
+                else
+                {
+                    Context.Send(s => StatusText = _session.ConnectionStateMessage, null);
+                }
 
+                // Save states
                 IsConnected = _session.ConnectionState == ConnectionState.Up;
                 IsConnecting = _session.ConnectionState == ConnectionState.Attempting;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void DataFetcherOnDoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                Context.Send(s =>
+                {
+                    // Save current settings
+                    ConfigManager.Save(ConfigData);
+
+                    // Get everything ready
+                    StatusText = "Fetching users...";
+                    Users.Clear();
+                    TotalUsers = 0;
+                    MatchingUsers = 0;
+                    FetchProgress = 0;
+                }, null);
+                
+                // Build query
+                var query = _userConfigurationList.CreateQuerySettings();
+                query.SetRightsFilterToAdmin();
+                query.SetPropertiesToRetrieve(UserConfiguration.Property.Id, UserConfiguration.Property.NtDomainUser);
+
+                // Get results
+                _userConfigurationList.StartCaching(query);
+                var users = _userConfigurationList.GetConfigurationList();
+
+                // Update count
+                Context.Send(s =>
+                {
+                    TotalUsers = users.Count;
+                    StatusText = "Evaluating " + users.Count + " users...";
+                }, null);
+
+                // Make UI elements
+                for (int i = 0; i < users.Count; i++)
+                {
+                    var user = users[i];
+
+                    if (user.NtDomainUser.Value != null &&
+                        user.NtDomainUser.Value.StartsWith(ConfigData.ExistingDomain + "\\",
+                            StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        Context.Send(s =>
+                        {
+                            var newUser = new UserViewModel(user);
+                            newUser.NewDomainId = ConfigData.NewDomain +
+                                                  newUser.OldDomainId.Substring(ConfigData.ExistingDomain.Length);
+                            Users.Add(newUser);
+
+                            // Update count
+                            MatchingUsers = Users.Count;
+                        }, null);
+                    }
+
+                    // Update progress
+                    Context.Send(s => FetchProgress = (int) (((double) i/(double) users.Count)*100), null);
+                }
+
+                Context.Send(s => StatusText = "Fetch complete.", null);
+
+                // Run processor?
+                if (e.Argument != null &&
+                    e.Argument.ToString().Equals("process", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (!_processor.IsBusy) _processor.RunWorkerAsync();
+
+                    return;
+                }
+                else
+                {
+                    _userConfigurationList.StopCaching();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void DataFetcherOnRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            try
+            {
+                // Update counts
+                Context.Send(s =>
+                {
+                    FetchProgress = -1;
+                }, null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ProcessorOnDoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                Context.Send(s => StatusText = "Processing " + Users.Count + " users...", null);
+
+                for (int i = 0; i < Users.Count; i++)
+                {
+                    var user = Users[i];
+                    try
+                    {
+                        Context.Send(s => user.ProcessingState = ProcessingState.InProcess, null);
+
+                        user.UserConfiguration.PrepareForEdit();
+                        user.UserConfiguration.NtDomainUser.Value = user.NewDomainId;
+                        user.UserConfiguration.Commit();
+
+                        Context.Send(s => user.ProcessingState = ProcessingState.Complete, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        Context.Send(s =>
+                        {
+                            user.ProcessingState = ProcessingState.Error;
+                            user.Tooltip = ex.Message;
+                        },null);
+                    }
+
+                    Context.Send(s =>
+                    {
+                        ProcessProgress = (int) (((double) i/(double) Users.Count)*100);
+                    }, null);
+                }
+
+                Context.Send(s => StatusText = "Processing complete.", null);
+
+                _userConfigurationList.StopCaching();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ProcessorOnRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            try
+            {
+                // Update counts
+                Context.Send(s =>
+                {
+                    FetchProgress = -1;
+                    ProcessProgress = -1;
+                }, null);
             }
             catch (Exception ex)
             {
@@ -112,6 +379,51 @@ namespace NtDomainUpdater.viewModel
             try
             {
                 _session.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public void FetchData()
+        {
+            try
+            {
+                if (!_dataFetcher.IsBusy)
+                {
+                    // Update counts
+                    Context.Send(s =>
+                    {
+                        FetchProgress = 0;
+                    }, null);
+
+                    // Run worker
+                    _dataFetcher.RunWorkerAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public void ProcessChanges()
+        {
+            try
+            {
+                if (!_dataFetcher.IsBusy)
+                {
+                    // Update counts
+                    Context.Send(s =>
+                    {
+                        FetchProgress = 0;
+                        ProcessProgress = 0;
+                    }, null);
+
+                    // Run worker and tell it to process after fetching
+                    _dataFetcher.RunWorkerAsync("process");
+                }
             }
             catch (Exception ex)
             {

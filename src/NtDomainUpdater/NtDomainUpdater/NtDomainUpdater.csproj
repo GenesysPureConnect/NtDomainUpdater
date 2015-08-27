@@ -15,7 +15,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -26,7 +26,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -36,7 +36,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>replace.ico</ApplicationIcon>
+    <ApplicationIcon>img\replace.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ININ.IceLib">
@@ -75,6 +75,7 @@
     <Compile Include="model\ConfigData.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="viewModel\MainViewModel.cs" />
+    <Compile Include="viewModel\UserViewModel.cs" />
     <Compile Include="viewModel\ViewModelBase.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -118,7 +119,25 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="replace.ico" />
+    <Resource Include="img\replace.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="img\ok2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="img\recycle2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="img\error2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="img\sign_warning2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="img\nav_plain_gray2.png" />
+    <Resource Include="img\nav_plain_green2.png" />
+    <Resource Include="img\nav_plain_red2.png" />
+    <Resource Include="img\nav_plain_yellow2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

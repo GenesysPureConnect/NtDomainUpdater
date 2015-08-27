@@ -83,7 +83,7 @@ namespace NtDomainUpdater.model
         [ConfigProperty("ExistingDomain", Description = "Existing Domain", DefaultValue = "")]
         public string ExistingDomain
         {
-            get { return _existingDomain; }
+            get { return _existingDomain.Trim(); }
             set
             {
                 _existingDomain = value;
@@ -94,7 +94,7 @@ namespace NtDomainUpdater.model
         [ConfigProperty("NewDomain", Description = "New Domain", DefaultValue = "")]
         public string NewDomain
         {
-            get { return _newDomain; }
+            get { return _newDomain.Trim(); }
             set
             {
                 _newDomain = value;

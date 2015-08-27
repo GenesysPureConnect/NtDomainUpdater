@@ -7,12 +7,12 @@ using System.Windows;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NtDomainUpdater")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("NT Domain Updater")]
+[assembly: AssemblyDescription("Bulk updates users' NT Domain configuration")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NtDomainUpdater")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCompany("Interactive Intelligence, Inc.")]
+[assembly: AssemblyProduct("NT Domain Updater")]
+[assembly: AssemblyCopyright("Copyright © Interactive Intelligence, Inc. 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

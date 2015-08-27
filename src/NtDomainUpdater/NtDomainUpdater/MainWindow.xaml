@@ -5,176 +5,271 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModel="clr-namespace:NtDomainUpdater.viewModel"
         mc:Ignorable="d"
-        Title="NT Domain Updater" Height="500" Width="750" Icon="replace.ico" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
+        Title="NT Domain Updater" Height="500" Width="790" Icon="img/replace.ico" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
     <Window.Resources>
         <Style TargetType="GroupBox">
             <Setter Property="Margin" Value="2" />
         </Style>
     </Window.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220" MinWidth="150" MaxWidth="500" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
+    <DockPanel>
+        <StatusBar DockPanel.Dock="Bottom">
+            <Image Width="16" Height="16" VerticalAlignment="Center" Margin="5,5,0,5">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Setter Property="Source" Value="img/nav_plain_gray2.png" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
+                                <Setter Property="Source" Value="img/nav_plain_green2.png" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
+                                <Setter Property="Source" Value="img/nav_plain_yellow2.png" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+            <Label Content="{Binding Path=StatusText}" />
+        </StatusBar>
         
-        <DockPanel LastChildFill="False">
-            <GroupBox Header="Connection" DockPanel.Dock="Top">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="70" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" MinWidth="150" MaxWidth="500" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+        
+            <DockPanel LastChildFill="False">
+                <GroupBox Header="Connection" DockPanel.Dock="Top">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="70" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0">Server</Label>
-                    <TextBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Path=ConfigData.Server}">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
+                        <Label Grid.Row="0" Grid.Column="0">Server</Label>
+                        <TextBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Path=ConfigData.Server}">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="IsEnabled" Value="True" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
 
-                    <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5,2" IsChecked="{Binding Path=ConfigData.UseWindowsAuth}">
-                        <CheckBox.Style>
-                            <Style TargetType="CheckBox">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Setter Property="Content" Value="Use Windows Auth" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </CheckBox.Style>
-                    </CheckBox>
+                        <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5,2" IsChecked="{Binding Path=ConfigData.UseWindowsAuth}">
+                            <CheckBox.Style>
+                                <Style TargetType="CheckBox">
+                                    <Setter Property="IsEnabled" Value="True" />
+                                    <Setter Property="Content" Value="Use Windows Auth" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </CheckBox.Style>
+                        </CheckBox>
 
-                        <Label Grid.Row="2" Grid.Column="0">Username</Label>
-                    <TextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Path=ConfigData.Username}">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=ConfigData.UseWindowsAuth}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
+                            <Label Grid.Row="2" Grid.Column="0">Username</Label>
+                        <TextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Path=ConfigData.Username}">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="IsEnabled" Value="True" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=ConfigData.UseWindowsAuth}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
 
-                    <Label Grid.Row="3" Grid.Column="0">Password</Label>
-                    <PasswordBox Name="PasswordBox" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" PasswordChanged="PasswordBox_OnPasswordChanged">
-                        <PasswordBox.Style>
-                            <Style TargetType="PasswordBox">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=ConfigData.UseWindowsAuth}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </PasswordBox.Style>
-                    </PasswordBox>
+                        <Label Grid.Row="3" Grid.Column="0">Password</Label>
+                        <PasswordBox Name="PasswordBox" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" PasswordChanged="PasswordBox_OnPasswordChanged">
+                            <PasswordBox.Style>
+                                <Style TargetType="PasswordBox">
+                                    <Setter Property="IsEnabled" Value="True" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=ConfigData.UseWindowsAuth}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </PasswordBox.Style>
+                        </PasswordBox>
 
-                    <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" Click="Connect_Click">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Content" Value="Connect" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
-                                        <Setter Property="Content" Value="Disconnect" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </Grid>
-            </GroupBox>
+                        <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" Click="Connect_Click">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="Connect" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=IsConnected}" Value="True">
+                                            <Setter Property="Content" Value="Disconnect" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnecting}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </GroupBox>
             
-            <GroupBox Header="Configuration" DockPanel.Dock="Top" IsEnabled="{Binding Path=IsConnected}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
+                <GroupBox Header="Configuration" DockPanel.Dock="Top" IsEnabled="{Binding Path=IsConnected}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
                     
-                    <Label>Existing Domain:</Label>
-                    <TextBox Grid.Row="1" Text="{Binding Path=ConfigData.ExistingDomain}" />
+                        <Label>Existing Domain:</Label>
+                        <TextBox Grid.Row="1" Text="{Binding Path=ConfigData.ExistingDomain}" IsEnabled="{Binding Path=IsNotBusy}" />
 
-                    <Label Grid.Row="2">New Domain:</Label>
-                    <TextBox Grid.Row="3" Text="{Binding Path=ConfigData.NewDomain}" />
+                        <Label Grid.Row="2">New Domain:</Label>
+                        <TextBox Grid.Row="3" Text="{Binding Path=ConfigData.NewDomain}" IsEnabled="{Binding Path=IsNotBusy}" />
 
-                    <Button Grid.Row="4" Margin="0,10,0,2">Fetch Data</Button>
-                    <Button Grid.Row="5" Margin="0,2,0,0" HorizontalContentAlignment="Stretch">
-                        <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
-                            <TextBlock HorizontalAlignment="Center">Process Changes</TextBlock>
-                            <ProgressBar HorizontalAlignment="Stretch" Height="5" Margin="2,5,2,2" Value="50" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </GroupBox>
-        </DockPanel>
+                        <Button Grid.Row="4" Margin="0,10,0,0" HorizontalContentAlignment="Stretch" Click="FetchData_Click" IsEnabled="{Binding Path=IsNotBusy}">
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
+                                <TextBlock HorizontalAlignment="Center">Fetch Data</TextBlock>
+                                <ProgressBar HorizontalAlignment="Stretch" Height="5" Margin="2,5,2,2" Value="{Binding Path=FetchProgress}">
+                                    <ProgressBar.Style>
+                                        <Style TargetType="ProgressBar">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=FetchProgress}" Value="-1">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ProgressBar.Style>
+                                </ProgressBar>
+                            </StackPanel>
+                        </Button>
 
-        <GridSplitter HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="5" Grid.Column="1" Background="#10000000" />
-        <GroupBox Header="Data" Grid.Column="1" Margin="7,2,2,2">
-            <DockPanel>
-                <DockPanel DockPanel.Dock="Top" LastChildFill="False">
-                    <Label DockPanel.Dock="Left">Total users:</Label>
-                    <Label DockPanel.Dock="Left">1234</Label>
-
-                    <Label DockPanel.Dock="Left" Margin="15,0,0,0">Matching users:</Label>
-                    <Label DockPanel.Dock="Left">50</Label>
-                </DockPanel>
-                
-                <ListView>
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Username" Width="100" />
-                            <GridViewColumn Header="Current NT Domain Setting" Width="180" />
-                            <GridViewColumn Header="Future NT Domain Setting" Width="180" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                        <Button Grid.Row="5" Margin="0,2,0,0" HorizontalContentAlignment="Stretch" Click="ProcessChanges_Click" IsEnabled="{Binding Path=IsNotBusy}">
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
+                                <TextBlock HorizontalAlignment="Center">Process Changes</TextBlock>
+                                <ProgressBar HorizontalAlignment="Stretch" Height="5" Margin="2,5,2,2" Value="{Binding Path=ProcessProgress}">
+                                    <ProgressBar.Style>
+                                        <Style TargetType="ProgressBar">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=ProcessProgress}" Value="-1">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ProgressBar.Style>
+                                </ProgressBar>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </GroupBox>
             </DockPanel>
-        </GroupBox>
+
+            <GridSplitter HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="5" Grid.Column="1" Background="#10000000" />
+            <GroupBox Header="Data" Grid.Column="1" Margin="7,2,2,2">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+                        <Label DockPanel.Dock="Left">Total users:</Label>
+                        <Label DockPanel.Dock="Left" Content="{Binding Path=TotalUsers}"/>
+
+                        <Label DockPanel.Dock="Left" Margin="15,0,0,0">Matching users:</Label>
+                        <Label DockPanel.Dock="Left" Content="{Binding Path=MatchingUsers}" />
+                    </DockPanel>
+
+                    <ListView ItemsSource="{Binding Path=Users}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="30">
+                                    <GridViewColumn.Header>
+                                        <Image Source="img/ok2.png" Width="16" Height="16" />
+                                    </GridViewColumn.Header>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate DataType="viewModel:UserViewModel">
+                                            <Image Width="16" Height="16" ToolTip="{Binding Path=Tooltip}">
+                                                <Image.Style>
+                                                    <Style TargetType="Image">
+                                                        <Setter Property="Visibility" Value="Hidden" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                <DataTrigger.Value>
+                                                                    <viewModel:ProcessingState>Complete</viewModel:ProcessingState>
+                                                                </DataTrigger.Value>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Source" Value="img/ok2.png" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                <DataTrigger.Value>
+                                                                    <viewModel:ProcessingState>Error</viewModel:ProcessingState>
+                                                                </DataTrigger.Value>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Source" Value="img/error2.png" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                <DataTrigger.Value>
+                                                                    <viewModel:ProcessingState>Warning</viewModel:ProcessingState>
+                                                                </DataTrigger.Value>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Source" Value="img/sign_warning2.png" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                <DataTrigger.Value>
+                                                                    <viewModel:ProcessingState>InProcess</viewModel:ProcessingState>
+                                                                </DataTrigger.Value>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Source" Value="img/recycle2.png" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Path=Username}" Width="100" />
+                                <GridViewColumn Header="Old NT Domain Setting" DisplayMemberBinding="{Binding Path=OldDomainId}" Width="180" />
+                                <GridViewColumn Header="New NT Domain Setting" DisplayMemberBinding="{Binding Path=NewDomainId}" Width="180" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </DockPanel>
+            </GroupBox>
         
-    </Grid>
+        </Grid>
+    </DockPanel>
 </Window>
