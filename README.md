@@ -6,7 +6,7 @@ The application doesn't require any install. Just download, extract, and run it.
 
 1. Download the ZIP file from the latest [release](https://github.com/InteractiveIntelligence/NtDomainUpdater/releases).
 2. Unzip to your favorite location
-3. Run NtDomainUpdater.exe
+3. Run NtDomainUpdater.exe _(requires .NET 4.5)_
 
 ![screenshot](https://raw.githubusercontent.com/InteractiveIntelligence/NtDomainUpdater/master/resources/screenshot.png)
 
