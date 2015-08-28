@@ -13,5 +13,11 @@ namespace NtDomainUpdater
     /// </summary>
     public partial class App : Application
     {
+        public static string[] Args = new string[0];
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            Args = e.Args;
+            base.OnStartup(e);
+        }
     }
 }

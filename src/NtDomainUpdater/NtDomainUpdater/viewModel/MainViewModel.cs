@@ -33,6 +33,7 @@ namespace NtDomainUpdater.viewModel
         private int _fetchProgress = -1;
         private int _processProgress = -1;
         private string _statusText= "";
+        private string _connectionStateMessage = "Not connected";
 
         #endregion
 
@@ -66,6 +67,16 @@ namespace NtDomainUpdater.viewModel
             set
             {
                 _isConnecting = value; 
+                OnPropertyChanged();
+            }
+        }
+
+        public string ConnectionStateMessage
+        {
+            get { return _connectionStateMessage; }
+            set
+            {
+                _connectionStateMessage = value; 
                 OnPropertyChanged();
             }
         }
@@ -186,8 +197,12 @@ namespace NtDomainUpdater.viewModel
                 }
 
                 // Save states
-                IsConnected = _session.ConnectionState == ConnectionState.Up;
-                IsConnecting = _session.ConnectionState == ConnectionState.Attempting;
+                Context.Send(s =>
+                {
+                    IsConnected = _session.ConnectionState == ConnectionState.Up;
+                    IsConnecting = _session.ConnectionState == ConnectionState.Attempting;
+                    ConnectionStateMessage = _session.ConnectionStateMessage;
+                }, null);
             }
             catch (Exception ex)
             {
@@ -365,7 +380,16 @@ namespace NtDomainUpdater.viewModel
                     ? new WindowsAuthSettings() as AuthSettings
                     : new ICAuthSettings(ConfigData.Username, ConfigData.Password);
 
-                _session.ConnectAsync(new SessionSettings(), new HostSettings(new HostEndpoint(ConfigData.Server)),
+                var customSettings = new Dictionary<string, string>();
+                var identitydetailRaw =
+                    App.Args.FirstOrDefault(
+                        arg => arg.StartsWith("/identitydetail=", StringComparison.InvariantCultureIgnoreCase));
+                if (!string.IsNullOrEmpty(identitydetailRaw))
+                {
+                    customSettings.Add("identitydetail", identitydetailRaw.Substring("/identitydetail=".Length));
+                }
+
+                _session.ConnectAsync(new SessionSettings(customSettings), new HostSettings(new HostEndpoint(ConfigData.Server)),
                     authSettings, new StationlessSettings(), null, null);
             }
             catch (Exception ex)

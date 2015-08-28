@@ -13,7 +13,7 @@
     </Window.Resources>
     <DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
-            <Image Width="16" Height="16" VerticalAlignment="Center" Margin="5,5,0,5">
+            <Image Width="16" Height="16" VerticalAlignment="Center" Margin="5,5,0,5" ToolTip="{Binding Path=ConnectionStateMessage}">
                 <Image.Style>
                     <Style TargetType="Image">
                         <Setter Property="Source" Value="img/nav_plain_gray2.png" />
@@ -30,13 +30,13 @@
             </Image>
             <Label Content="{Binding Path=StatusText}" />
         </StatusBar>
-        
+
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220" MinWidth="150" MaxWidth="500" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-        
+
             <DockPanel LastChildFill="False">
                 <GroupBox Header="Connection" DockPanel.Dock="Top">
                     <Grid>
@@ -54,7 +54,7 @@
                         </Grid.RowDefinitions>
 
                         <Label Grid.Row="0" Grid.Column="0">Server</Label>
-                        <TextBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Path=ConfigData.Server}">
+                        <TextBox KeyUp="ConnectionElement_OnKeyUp" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Path=ConfigData.Server, UpdateSourceTrigger=PropertyChanged}">
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
                                     <Setter Property="IsEnabled" Value="True" />
@@ -87,8 +87,8 @@
                             </CheckBox.Style>
                         </CheckBox>
 
-                            <Label Grid.Row="2" Grid.Column="0">Username</Label>
-                        <TextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Path=ConfigData.Username}">
+                        <Label Grid.Row="2" Grid.Column="0">Username</Label>
+                        <TextBox KeyUp="ConnectionElement_OnKeyUp" Grid.Row="2" Grid.Column="1" VerticalAlignment="Bottom" Text="{Binding Path=ConfigData.Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4">
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
                                     <Setter Property="IsEnabled" Value="True" />
@@ -108,7 +108,7 @@
                         </TextBox>
 
                         <Label Grid.Row="3" Grid.Column="0">Password</Label>
-                        <PasswordBox Name="PasswordBox" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" PasswordChanged="PasswordBox_OnPasswordChanged">
+                        <PasswordBox KeyUp="ConnectionElement_OnKeyUp" Name="PasswordBox" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" PasswordChanged="PasswordBox_OnPasswordChanged">
                             <PasswordBox.Style>
                                 <Style TargetType="PasswordBox">
                                     <Setter Property="IsEnabled" Value="True" />
@@ -144,7 +144,7 @@
                         </Button>
                     </Grid>
                 </GroupBox>
-            
+
                 <GroupBox Header="Configuration" DockPanel.Dock="Top" IsEnabled="{Binding Path=IsConnected}">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -155,12 +155,12 @@
                             <RowDefinition />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-                    
+
                         <Label>Existing Domain:</Label>
-                        <TextBox Grid.Row="1" Text="{Binding Path=ConfigData.ExistingDomain}" IsEnabled="{Binding Path=IsNotBusy}" />
+                        <TextBox KeyUp="ConfigurationElement_OnKeyUp" Grid.Row="1" Text="{Binding Path=ConfigData.ExistingDomain, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Path=IsNotBusy}" />
 
                         <Label Grid.Row="2">New Domain:</Label>
-                        <TextBox Grid.Row="3" Text="{Binding Path=ConfigData.NewDomain}" IsEnabled="{Binding Path=IsNotBusy}" />
+                        <TextBox KeyUp="ConfigurationElement_OnKeyUp" Grid.Row="3" Text="{Binding Path=ConfigData.NewDomain, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Path=IsNotBusy}" />
 
                         <Button Grid.Row="4" Margin="0,10,0,0" HorizontalContentAlignment="Stretch" Click="FetchData_Click" IsEnabled="{Binding Path=IsNotBusy}">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
@@ -269,7 +269,7 @@
                     </ListView>
                 </DockPanel>
             </GroupBox>
-        
+
         </Grid>
     </DockPanel>
 </Window>
