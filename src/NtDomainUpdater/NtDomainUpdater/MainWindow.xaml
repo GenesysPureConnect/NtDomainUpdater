@@ -10,6 +10,15 @@
         <Style TargetType="GroupBox">
             <Setter Property="Margin" Value="2" />
         </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="Padding" Value="1,2" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="8,2" />
+        </Style>
     </Window.Resources>
     <DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
@@ -202,74 +211,113 @@
             </DockPanel>
 
             <GridSplitter HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="5" Grid.Column="1" Background="#10000000" />
-            <GroupBox Header="Data" Grid.Column="1" Margin="7,2,2,2">
-                <DockPanel>
-                    <DockPanel DockPanel.Dock="Top" LastChildFill="False">
-                        <Label DockPanel.Dock="Left">Total users:</Label>
-                        <Label DockPanel.Dock="Left" Content="{Binding Path=TotalUsers}"/>
 
-                        <Label DockPanel.Dock="Left" Margin="15,0,0,0">Matching users:</Label>
-                        <Label DockPanel.Dock="Left" Content="{Binding Path=MatchingUsers}" />
+            <DockPanel Grid.Column="1" Margin="7,2,2,2">
+                <GroupBox DockPanel.Dock="Top" Header="Set Single User" IsEnabled="{Binding Path=IsConnected}">
+                    <DockPanel LastChildFill="False">
+                        <Label DockPanel.Dock="Left">CIC User:</Label>
+                        <TextBox DockPanel.Dock="Left" Width="150" VerticalAlignment="Center" KeyUp="SingleUser_OnKeyUp"
+                                 Margin="0,0,10,0" Text="{Binding Path=SingleCicUser, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <Label DockPanel.Dock="Left">NT User:</Label>
+                        <TextBox DockPanel.Dock="Left" Width="150" VerticalAlignment="Center" KeyUp="SingleUser_OnKeyUp"
+                                 Text="{Binding Path=SingleNtUser, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                    <Style.Resources>
+                                        <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                            <VisualBrush.Visual>
+                                                <Label Content="domain\user.name" Foreground="LightGray" />
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Style.Resources>
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="Text" Value="{x:Null}">
+                                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsKeyboardFocused" Value="True">
+                                            <Setter Property="Background" Value="White" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        
+                        <Button Click="SetSingleUserValue_OnClick" DockPanel.Dock="Right" VerticalAlignment="Center" IsEnabled="{Binding Path=HasSingleUser}">Set Value</Button>
                     </DockPanel>
+                </GroupBox>
+                
+                <GroupBox Header="Data" IsEnabled="{Binding Path=IsConnected}">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+                            <Label DockPanel.Dock="Left">Total users:</Label>
+                            <Label DockPanel.Dock="Left" Content="{Binding Path=TotalUsers}"/>
 
-                    <ListView ItemsSource="{Binding Path=Users}">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Width="30">
-                                    <GridViewColumn.Header>
-                                        <Image Source="img/ok2.png" Width="16" Height="16" />
-                                    </GridViewColumn.Header>
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate DataType="viewModel:UserViewModel">
-                                            <Image Width="16" Height="16" ToolTip="{Binding Path=Tooltip}">
-                                                <Image.Style>
-                                                    <Style TargetType="Image">
-                                                        <Setter Property="Visibility" Value="Hidden" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
-                                                                <DataTrigger.Value>
-                                                                    <viewModel:ProcessingState>Complete</viewModel:ProcessingState>
-                                                                </DataTrigger.Value>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                <Setter Property="Source" Value="img/ok2.png" />
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
-                                                                <DataTrigger.Value>
-                                                                    <viewModel:ProcessingState>Error</viewModel:ProcessingState>
-                                                                </DataTrigger.Value>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                <Setter Property="Source" Value="img/error2.png" />
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
-                                                                <DataTrigger.Value>
-                                                                    <viewModel:ProcessingState>Warning</viewModel:ProcessingState>
-                                                                </DataTrigger.Value>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                <Setter Property="Source" Value="img/sign_warning2.png" />
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Path=ProcessingState}">
-                                                                <DataTrigger.Value>
-                                                                    <viewModel:ProcessingState>InProcess</viewModel:ProcessingState>
-                                                                </DataTrigger.Value>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                <Setter Property="Source" Value="img/recycle2.png" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Image.Style>
-                                            </Image>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Path=Username}" Width="100" />
-                                <GridViewColumn Header="Old NT Domain Setting" DisplayMemberBinding="{Binding Path=OldDomainId}" Width="180" />
-                                <GridViewColumn Header="New NT Domain Setting" DisplayMemberBinding="{Binding Path=NewDomainId}" Width="180" />
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                </DockPanel>
-            </GroupBox>
+                            <Label DockPanel.Dock="Left" Margin="15,0,0,0">Matching users:</Label>
+                            <Label DockPanel.Dock="Left" Content="{Binding Path=MatchingUsers}" />
+                        </DockPanel>
 
+                        <ListView ItemsSource="{Binding Path=Users}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="30">
+                                        <GridViewColumn.Header>
+                                            <Image Source="img/ok2.png" Width="16" Height="16" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate DataType="viewModel:UserViewModel">
+                                                <Image Width="16" Height="16" ToolTip="{Binding Path=Tooltip}">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Setter Property="Visibility" Value="Hidden" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                    <DataTrigger.Value>
+                                                                        <viewModel:ProcessingState>Complete</viewModel:ProcessingState>
+                                                                    </DataTrigger.Value>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Setter Property="Source" Value="img/ok2.png" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                    <DataTrigger.Value>
+                                                                        <viewModel:ProcessingState>Error</viewModel:ProcessingState>
+                                                                    </DataTrigger.Value>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Setter Property="Source" Value="img/error2.png" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                    <DataTrigger.Value>
+                                                                        <viewModel:ProcessingState>Warning</viewModel:ProcessingState>
+                                                                    </DataTrigger.Value>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Setter Property="Source" Value="img/sign_warning2.png" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Path=ProcessingState}">
+                                                                    <DataTrigger.Value>
+                                                                        <viewModel:ProcessingState>InProcess</viewModel:ProcessingState>
+                                                                    </DataTrigger.Value>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Setter Property="Source" Value="img/recycle2.png" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Path=Username}" Width="100" />
+                                    <GridViewColumn Header="Old NT Domain Setting" DisplayMemberBinding="{Binding Path=OldDomainId}" Width="180" />
+                                    <GridViewColumn Header="New NT Domain Setting" DisplayMemberBinding="{Binding Path=NewDomainId}" Width="180" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </DockPanel>
+                </GroupBox>
+            </DockPanel>
         </Grid>
     </DockPanel>
 </Window>

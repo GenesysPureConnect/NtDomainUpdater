@@ -22,11 +22,12 @@ namespace NtDomainUpdater.viewModel
 
         private ConfigData _configData = new ConfigData();
         private readonly Session _session = new Session();
-        private bool _isConnected;
-        private bool _isConnecting;
+        private bool _isConnected = false;
+        private bool _isConnecting = false;
         private UserConfigurationList _userConfigurationList;
         private readonly BackgroundWorker _dataFetcher = new BackgroundWorker();
         private readonly BackgroundWorker _processor = new BackgroundWorker();
+        private readonly BackgroundWorker _setSingleUserDataWorker = new BackgroundWorker();
         private ObservableCollection<UserViewModel> _users = new ObservableCollection<UserViewModel>();
         private int _totalUsers;
         private int _matchingUsers;
@@ -34,6 +35,8 @@ namespace NtDomainUpdater.viewModel
         private int _processProgress = -1;
         private string _statusText= "";
         private string _connectionStateMessage = "Not connected";
+        private string _singleCicUser = "";
+        private string _singleNtUser = "";
 
         #endregion
 
@@ -133,7 +136,7 @@ namespace NtDomainUpdater.viewModel
             }
         }
 
-        public bool IsNotBusy { get { return FetchProgress == -1 && ProcessProgress == -1; } }
+        public bool IsNotBusy { get { return FetchProgress == -1 && ProcessProgress == -1 && !IsSingleUserBusy; } }
 
         public string StatusText
         {
@@ -144,6 +147,35 @@ namespace NtDomainUpdater.viewModel
                 OnPropertyChanged();
             }
         }
+
+        public string SingleCicUser
+        {
+            get { return _singleCicUser; }
+            set
+            {
+                _singleCicUser = value;
+                OnPropertyChanged();
+                OnPropertyChanged("HasSingleUser");
+            }
+        }
+
+        public string SingleNtUser
+        {
+            get { return _singleNtUser; }
+            set
+            {
+                _singleNtUser = value;
+                OnPropertyChanged();
+                OnPropertyChanged("HasSingleUser");
+            }
+        }
+
+        public bool HasSingleUser
+        {
+            get { return !string.IsNullOrEmpty(SingleCicUser) && !string.IsNullOrEmpty(SingleNtUser); }
+        }
+
+        public bool IsSingleUserBusy { get { return _setSingleUserDataWorker.IsBusy; } }
 
         #endregion
 
@@ -161,6 +193,9 @@ namespace NtDomainUpdater.viewModel
             _processor.DoWork += ProcessorOnDoWork;
             _processor.RunWorkerCompleted += ProcessorOnRunWorkerCompleted;
 
+            _setSingleUserDataWorker.DoWork += SetSingleUserDataWorkerOnDoWork;
+            _setSingleUserDataWorker.RunWorkerCompleted += SetSingleUserDataWorkerOnRunWorkerCompleted;
+
             try
             {
                 var name = Environment.UserName;
@@ -172,8 +207,6 @@ namespace NtDomainUpdater.viewModel
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-
 
         #region Private Methods
 
@@ -226,6 +259,9 @@ namespace NtDomainUpdater.viewModel
                     MatchingUsers = 0;
                     FetchProgress = 0;
                 }, null);
+
+                // Stop caching
+                if (_userConfigurationList.IsCaching) _userConfigurationList.StopCaching();
                 
                 // Build query
                 var query = _userConfigurationList.CreateQuerySettings();
@@ -366,6 +402,81 @@ namespace NtDomainUpdater.viewModel
             }
         }
 
+        private void SetSingleUserDataWorkerOnDoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                Context.Send(s =>
+                {
+                    StatusText = "Fetching single user...";
+                    OnPropertyChanged("IsSingleUserBusy");
+                }, null);
+
+                // Stop caching
+                if (_userConfigurationList.IsCaching) _userConfigurationList.StopCaching();
+
+                // Create query
+                var query = _userConfigurationList.CreateQuerySettings();
+                query.SetRightsFilterToAdmin();
+                query.SetPropertiesToRetrieve(UserConfiguration.Property.Id, UserConfiguration.Property.NtDomainUser);
+                query.SetFilterDefinition(
+                    new BasicFilterDefinition<UserConfiguration, UserConfiguration.Property>(
+                        UserConfiguration.Property.Id, SingleCicUser, FilterMatchType.Exact));
+
+                // Get results
+                _userConfigurationList.StartCaching(query);
+                var users = _userConfigurationList.GetConfigurationList();
+
+                // Check for results
+                if (users.Count == 0)
+                {
+                    MessageBox.Show("Unable to find user " + SingleCicUser + ". Check the username and try again.",
+                        "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                Context.Send(s =>
+                {
+                    StatusText = "Updating single user...";
+                    OnPropertyChanged("IsSingleUserBusy");
+                }, null);
+
+                // Set value
+                var user = users[0];
+                user.PrepareForEdit();
+                user.NtDomainUser.Value = SingleNtUser;
+                user.Commit();
+
+                e.Result = true;
+
+                _userConfigurationList.StopCaching();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SetSingleUserDataWorkerOnRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            try
+            {
+                Context.Send(s =>
+                {
+                    if (e.Result is bool && (bool) e.Result)
+                        StatusText = SingleCicUser + "'s NT user updated to " + SingleNtUser;
+                    else
+                        StatusText = "Failed to update " + SingleCicUser;
+
+                    OnPropertyChanged("IsSingleUserBusy");
+                }, null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         #endregion
 
 
@@ -447,6 +558,22 @@ namespace NtDomainUpdater.viewModel
 
                     // Run worker and tell it to process after fetching
                     _dataFetcher.RunWorkerAsync("process");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public void SetSingleUserData()
+        {
+            try
+            {
+                if (!_setSingleUserDataWorker.IsBusy)
+                {
+                    // Run worker
+                    _setSingleUserDataWorker.RunWorkerAsync();
                 }
             }
             catch (Exception ex)

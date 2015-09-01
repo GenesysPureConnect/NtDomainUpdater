@@ -122,5 +122,31 @@ namespace NtDomainUpdater
                 // Supress error, don't care
             }
         }
+
+        private void SingleUser_OnKeyUp(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.Key != Key.Enter && e.Key != Key.Return) return;
+
+                ViewModel.SetSingleUserData();
+            }
+            catch (Exception ex)
+            {
+                // Supress error, don't care
+            }
+        }
+
+        private void SetSingleUserValue_OnClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ViewModel.SetSingleUserData();
+            }
+            catch (Exception ex)
+            {
+                // Supress error, don't care
+            }
+        }
     }
 }
