@@ -172,7 +172,7 @@ namespace NtDomainUpdater.viewModel
 
         public bool HasSingleUser
         {
-            get { return !string.IsNullOrEmpty(SingleCicUser) && !string.IsNullOrEmpty(SingleNtUser); }
+            get { return !string.IsNullOrEmpty(SingleCicUser); }
         }
 
         public bool IsSingleUserBusy { get { return _setSingleUserDataWorker.IsBusy; } }
@@ -290,13 +290,21 @@ namespace NtDomainUpdater.viewModel
                     {
                         Context.Send(s =>
                         {
-                            var newUser = new UserViewModel(user);
-                            newUser.NewDomainId = ConfigData.NewDomain +
-                                                  newUser.OldDomainId.Substring(ConfigData.ExistingDomain.Length);
-                            Users.Add(newUser);
+                            try
+                            {
+                                var newUser = new UserViewModel(user);
+                                newUser.NewDomainId = ConfigData.NewDomain +
+                                                      newUser.OldDomainId.Substring(ConfigData.ExistingDomain.Length);
+                                Users.Add(newUser);
 
-                            // Update count
-                            MatchingUsers = Users.Count;
+                                // Update count
+                                MatchingUsers = Users.Count;
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace, "Error",
+                                    MessageBoxButton.OK, MessageBoxImage.Error);
+                            }
                         }, null);
                     }
 
@@ -464,7 +472,12 @@ namespace NtDomainUpdater.viewModel
                 Context.Send(s =>
                 {
                     if (e.Result is bool && (bool) e.Result)
-                        StatusText = SingleCicUser + "'s NT user updated to " + SingleNtUser;
+                    {
+                        if (string.IsNullOrEmpty(SingleNtUser))
+                            StatusText = SingleCicUser + "'s NT user setting has been cleared";
+                        else
+                            StatusText = SingleCicUser + "'s NT user has been updated to " + SingleNtUser;
+                    }
                     else
                         StatusText = "Failed to update " + SingleCicUser;
 

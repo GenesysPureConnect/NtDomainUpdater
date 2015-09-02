@@ -88,6 +88,7 @@ namespace NtDomainUpdater.model
             {
                 _existingDomain = value;
                 OnPropertyChanged();
+                OnPropertyChanged("HasDomainValues");
             }
         }
 
@@ -99,8 +100,15 @@ namespace NtDomainUpdater.model
             {
                 _newDomain = value;
                 OnPropertyChanged();
+                OnPropertyChanged("HasDomainValues");
             }
         }
+
+        public bool HasDomainValues
+        {
+            get { return !string.IsNullOrEmpty(ExistingDomain) && !string.IsNullOrEmpty(NewDomain); }
+        }
+
 
 
         [NotifyPropertyChangedInvocator]
